@@ -13,6 +13,9 @@ import 'package:ecommerce_app/src/common_widgets/responsive_center.dart';
 import 'package:ecommerce_app/src/common_widgets/responsive_two_column_layout.dart';
 import 'package:ecommerce_app/src/constants/app_sizes.dart';
 import 'package:ecommerce_app/src/features/products/domain/product.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../common_widgets/async_value_widget.dart';
 
 /// Shows the product page for a given product ID.
 class ProductScreen extends StatelessWidget {
@@ -21,24 +24,28 @@ class ProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Read from data source
-    final product =
-        FakeProductsRepository.instance.getProduct(productId);
     return Scaffold(
       appBar: const HomeAppBar(),
-      body: product == null
-          ? EmptyPlaceholderWidget(
-              message: 'Product not found'.hardcoded,
-            )
-          : CustomScrollView(
-              slivers: [
-                ResponsiveSliverCenter(
-                  padding: const EdgeInsets.all(Sizes.p16),
-                  child: ProductDetails(product: product),
-                ),
-                ProductReviewsList(productId: productId),
-              ],
-            ),
+      body: Consumer(builder: (context, ref, _) {
+        final productValue = ref.watch(productProvider(productId));
+       return AsyncValueWidget<Product?>(
+       value: productValue,
+          data:(product) => product == null
+            ? EmptyPlaceholderWidget(
+                message: 'Product not found'.hardcoded,
+              )
+            : CustomScrollView(
+                slivers: [
+                  ResponsiveSliverCenter(
+                    padding: const EdgeInsets.all(Sizes.p16),
+                    child: ProductDetails(product: product),
+                  ),
+                  ProductReviewsList(productId: productId),
+                ],
+              ),
+         );
+      
+      }),
     );
   }
 }
